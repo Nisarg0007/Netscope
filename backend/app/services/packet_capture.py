@@ -21,12 +21,19 @@ class PacketCaptureService:
         self.packets: List[Dict[str, Any]] = []
         self.capture_stats = {
             'total_packets': 0,
+            'total_bytes': 0,
+            'min_packet_size': float('inf'),
+            'max_packet_size': 0,
             'tcp_packets': 0,
+            'tcp_bytes': 0,
             'udp_packets': 0,
+            'udp_bytes': 0,
             'icmp_packets': 0,
+            'icmp_bytes': 0,
             'arp_packets': 0,
-            'ipv6_packets': 0,
-            'other_packets': 0
+            'arp_bytes': 0,
+            'other_packets': 0,
+            'other_bytes': 0
         }
         self.is_capturing = False
         self.lock = threading.Lock()
@@ -59,12 +66,19 @@ class PacketCaptureService:
                 self.packets.clear()
                 self.capture_stats = {
                     'total_packets': 0,
+                    'total_bytes': 0,
+                    'min_packet_size': float('inf'),
+                    'max_packet_size': 0,
                     'tcp_packets': 0,
+                    'tcp_bytes': 0,
                     'udp_packets': 0,
+                    'udp_bytes': 0,
                     'icmp_packets': 0,
+                    'icmp_bytes': 0,
                     'arp_packets': 0,
-                    'ipv6_packets': 0,
-                    'other_packets': 0
+                    'arp_bytes': 0,
+                    'other_packets': 0,
+                    'other_bytes': 0
                 }
 
             # Start capture thread
@@ -115,12 +129,19 @@ class PacketCaptureService:
             self.packets.clear()
             self.capture_stats = {
                 'total_packets': 0,
+                'total_bytes': 0,
+                'min_packet_size': float('inf'),
+                'max_packet_size': 0,
                 'tcp_packets': 0,
+                'tcp_bytes': 0,
                 'udp_packets': 0,
+                'udp_bytes': 0,
                 'icmp_packets': 0,
+                'icmp_bytes': 0,
                 'arp_packets': 0,
-                'ipv6_packets': 0,
-                'other_packets': 0
+                'arp_bytes': 0,
+                'other_packets': 0,
+                'other_bytes': 0
             }
 
     def _capture_loop(self, interface: str):
@@ -146,15 +167,37 @@ class PacketCaptureService:
         try:
             packet_info = self._extract_packet_info(packet)
             if packet_info:
+                packet_length = len(packet)
+                protocol = packet_info.get('protocol', 'other')
+
                 with self.lock:
                     self.packets.append(packet_info)
                     # Update stats
                     self.capture_stats['total_packets'] += 1
-                    proto = packet_info.get('protocol', 'other')
-                    if proto in self.capture_stats:
-                        self.capture_stats[proto] += 1
+                    self.capture_stats['total_bytes'] += packet_length
+
+                    # Update min/max packet size
+                    if packet_length < self.capture_stats['min_packet_size']:
+                        self.capture_stats['min_packet_size'] = packet_length
+                    if packet_length > self.capture_stats['max_packet_size']:
+                        self.capture_stats['max_packet_size'] = packet_length
+
+                    # Update protocol-specific counters
+                    if protocol == 'tcp':
+                        self.capture_stats['tcp_packets'] += 1
+                        self.capture_stats['tcp_bytes'] += packet_length
+                    elif protocol == 'udp':
+                        self.capture_stats['udp_packets'] += 1
+                        self.capture_stats['udp_bytes'] += packet_length
+                    elif protocol == 'icmp':
+                        self.capture_stats['icmp_packets'] += 1
+                        self.capture_stats['icmp_bytes'] += packet_length
+                    elif protocol == 'arp':
+                        self.capture_stats['arp_packets'] += 1
+                        self.capture_stats['arp_bytes'] += packet_length
                     else:
                         self.capture_stats['other_packets'] += 1
+                        self.capture_stats['other_bytes'] += packet_length
 
                 # Keep only last 1000 packets to prevent memory issues
                 with self.lock:
@@ -227,10 +270,10 @@ class PacketCaptureService:
                     })
                     return info
 
-                # Other IP protocols
+                # Other IP protocols (not TCP/UDP/ICMP) -> other
                 else:
                     info.update({
-                        'protocol': 'ip'
+                        'protocol': 'other'
                     })
                     return info
 
@@ -263,19 +306,26 @@ class PacketCaptureService:
                     })
                     return info
 
-                # Handle ICMPv6
+                # Handle ICMPv6 -> other (since we only want icmp for IPv4)
                 elif packet.haslayer(ICMP):
                     info.update({
-                        'protocol': 'icmpv6'
+                        'protocol': 'other'
                     })
                     return info
 
-                # Other IPv6
+                # Other IPv6 -> other
                 else:
                     info.update({
-                        'protocol': 'ipv6'
+                        'protocol': 'other'
                     })
                     return info
+
+            # If not Ethernet, IP, or IPv6, classify as other
+            else:
+                info.update({
+                    'protocol': 'other'
+                })
+                return info
 
         except Exception as e:
             logging.debug(f"Error extracting packet info: {e}")
