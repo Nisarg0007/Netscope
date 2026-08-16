@@ -1,0 +1,50 @@
+# Dependencies
+/node_modules
+/__pycache__
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+/dist
+/build
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# SQLite database
+*.db
+*.sqlite
+
+backend/venv/
+frontend/node_modules/
+.env
+*.db
+
+# Build output
+dist/
+build/
+
+# Temporary backup files
+*.bak
+*.backup
+
+# Temporary development/debug files
+fix_status.txt
