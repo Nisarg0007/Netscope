@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health, interfaces, bandwidth, packet_capture, protocol_analysis, ip_analysis, port_analysis, traffic_analysis
+from app.routers import health, interfaces, bandwidth, packet_capture, protocol_analysis, ip_analysis, port_analysis, traffic_analysis, history
+from app.database import init_db
+
+# Initialize the database
+init_db()
 
 app = FastAPI(
     title="NetScope API",
@@ -26,6 +30,7 @@ app.include_router(protocol_analysis.router, prefix="/api", tags=["protocol-anal
 app.include_router(ip_analysis.router, prefix="/api", tags=["ip-analysis"])
 app.include_router(port_analysis.router, prefix="/api", tags=["port-analysis"])
 app.include_router(traffic_analysis.router, prefix="/api", tags=["traffic-analysis"])
+app.include_router(history.router, prefix="/api", tags=["history"])
 
 @app.get("/")
 async def root():
