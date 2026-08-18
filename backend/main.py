@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import health, interfaces, bandwidth, packet_capture, protocol_analysis, ip_analysis
+from app.routers import health, interfaces, bandwidth, packet_capture, protocol_analysis, ip_analysis, port_analysis
 
 app = FastAPI(
     title="NetScope API",
@@ -24,6 +24,7 @@ app.include_router(bandwidth.router, prefix="/api", tags=["bandwidth"])
 app.include_router(packet_capture.router, prefix="/api", tags=["packet-capture"])
 app.include_router(protocol_analysis.router, prefix="/api", tags=["protocol-analysis"])
 app.include_router(ip_analysis.router, prefix="/api", tags=["ip-analysis"])
+app.include_router(port_analysis.router, prefix="/api", tags=["port-analysis"])
 
 @app.get("/")
 async def root():
