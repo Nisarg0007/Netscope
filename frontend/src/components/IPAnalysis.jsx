@@ -19,8 +19,8 @@ const IPAnalysis = () => {
           getTopSourceIPs(limit, sortBy),
           getTopDestinationIPs(limit, sortBy)
         ]);
-        setSourceData(sourceRes);
-        setDestData(destRes);
+        setSourceData(sourceRes?.source_ips ?? []);
+        setDestData(destRes?.destination_ips ?? []);
       } catch (err) {
         setError('Failed to load IP traffic statistics');
         console.error(err);
@@ -139,7 +139,7 @@ const IPAnalysis = () => {
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packets: {ip.packet_count?.toLocaleString() || '0'}</span>
-                    <span>Bytes: {formatBytes(ip.byte_count || 0)}</span>
+                    <span>Bytes: {formatBytes(ip.total_bytes || 0)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packet %: {ip.packet_percentage?.toFixed(1)}%</span>
@@ -170,7 +170,7 @@ const IPAnalysis = () => {
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packets: {ip.packet_count?.toLocaleString() || '0'}</span>
-                    <span>Bytes: {formatBytes(ip.byte_count || 0)}</span>
+                    <span>Bytes: {formatBytes(ip.total_bytes || 0)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packet %: {ip.packet_percentage?.toFixed(1)}%</span>

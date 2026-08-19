@@ -53,7 +53,7 @@ const ProtocolAnalysis = () => {
   }
 
   // If no packet data available yet
-  if (!stats || (stats.total_packets === 0 && stats.total_bytes === 0)) {
+  if (!stats || !stats.overall || (stats.overall.total_packets === 0 && stats.overall.total_bytes === 0)) {
     return (
       <div className="p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -91,25 +91,25 @@ const ProtocolAnalysis = () => {
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm font-medium text-gray-500">Total Packets</p>
             <p className="text-2xl font-bold text-gray-900">
-              {stats.total_packets.toLocaleString()}
+              {((stats?.overall ?? {}).total_packets ?? 0).toLocaleString()}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm font-medium text-gray-500">Total Bytes</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatBytes(stats.total_bytes)}
+              {formatBytes(((stats?.overall ?? {}).total_bytes ?? 0))}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm font-medium text-gray-500">Packets/sec</p>
             <p className="text-2xl font-bold text-gray-900">
-              {Math.round(stats.packets_per_second || 0)}
+              {Math.round(((stats?.overall ?? {}).packets_per_second ?? 0))}
             </p>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">
             <p className="text-sm font-medium text-gray-500">Avg Packet Size</p>
             <p className="text-2xl font-bold text-gray-900">
-              {Math.round(stats.average_packet_size || 0)} B
+              {Math.round(((stats?.overall ?? {}).average_packet_size ?? 0))} B
             </p>
           </div>
         </div>
@@ -121,12 +121,12 @@ const ProtocolAnalysis = () => {
           Protocol Distribution
         </h3>
         <div className="space-y-4">
-          {stats.protocols?.map((protocol) => (
-            <div key={protocol.name} className="bg-white rounded-lg shadow-md p-4">
+          {Object.entries(stats.protocols ?? {}).map(([name, protocol]) => (
+            <div key={name} className="bg-white rounded-lg shadow-md p-4">
               <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-gray-800">{protocol.name}</h4>
+                <h4 className="font-medium text-gray-800">{name}</h4>
                 <span className="px-2 py-1 bg-gray-100 text-xs rounded">
-                  {protocol.packet_percentage?.toFixed(1)}% packets
+                  {((protocol?.packet_percentage) ?? 0).toFixed(1)}% packets
                 </span>
               </div>
 
@@ -134,12 +134,12 @@ const ProtocolAnalysis = () => {
               <div className="mb-2">
                 <div className="flex justify-between text-xs text-gray-500 mb-1">
                   <span>Packet Percentage</span>
-                  <span>{protocol.packet_percentage?.toFixed(1)}%</span>
+                  <span>{((protocol?.packet_percentage) ?? 0).toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: `${protocol.packet_percentage || 0}%` }}
+                    style={{ width: `${((protocol?.packet_percentage) ?? 0)}%` }}
                   ></div>
                 </div>
               </div>
@@ -148,12 +148,12 @@ const ProtocolAnalysis = () => {
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-gray-500 mb-1">
                   <span>Byte Percentage</span>
-                  <span>{protocol.byte_percentage?.toFixed(1)}%</span>
+                  <span>{((protocol?.byte_percentage) ?? 0).toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-green-600 h-2.5 rounded-full"
-                    style={{ width: `${protocol.byte_percentage || 0}%` }}
+                    style={{ width: `${((protocol?.byte_percentage) ?? 0)}%` }}
                   ></div>
                 </div>
               </div>
@@ -161,10 +161,10 @@ const ProtocolAnalysis = () => {
               {/* Details */}
               <div className="mt-2 text-sm text-gray-600 space-y-1">
                 <div>
-                  <span className="font-medium">Packets:</span> {protocol.packet_count?.toLocaleString() || '0'}
+                  <span className="font-medium">Packets:</span> {((protocol?.packet_count) ?? 0).toLocaleString()}
                 </div>
                 <div>
-                  <span className="font-medium">Bytes:</span> {formatBytes(protocol.byte_count || 0)}
+                  <span className="font-medium">Bytes:</span> {formatBytes(protocol.byte_count ?? 0)}
                 </div>
               </div>
             </div>

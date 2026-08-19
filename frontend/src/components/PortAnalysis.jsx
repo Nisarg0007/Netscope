@@ -19,8 +19,8 @@ const PortAnalysis = () => {
           getTopSourcePorts(limit, sortBy),
           getTopDestinationPorts(limit, sortBy)
         ]);
-        setSourceData(sourceRes);
-        setDestData(destRes);
+        setSourceData(sourceRes?.source_ports ?? []);
+        setDestData(destRes?.destination_ports ?? []);
       } catch (err) {
         setError('Failed to load port traffic statistics');
         console.error(err);
@@ -142,7 +142,7 @@ const PortAnalysis = () => {
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packets: {port.packet_count?.toLocaleString() || '0'}</span>
-                    <span>Bytes: {formatBytes(port.byte_count || 0)}</span>
+                    <span>Bytes: {formatBytes(port.total_bytes || 0)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packet %: {port.packet_percentage?.toFixed(1)}%</span>
@@ -176,7 +176,7 @@ const PortAnalysis = () => {
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packets: {port.packet_count?.toLocaleString() || '0'}</span>
-                    <span>Bytes: {formatBytes(port.byte_count || 0)}</span>
+                    <span>Bytes: {formatBytes(port.total_bytes || 0)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>Packet %: {port.packet_percentage?.toFixed(1)}%</span>

@@ -1,7 +1,7 @@
 import threading
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import delete
 from app.database import SessionLocal
@@ -129,7 +129,7 @@ class HistoryService:
         db = SessionLocal()
         try:
             history_record = NetworkHistory(
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 interface=bw_stats.get('interface'),
                 download_rate=int(bw_stats.get('download_bps', 0)),  # Convert to int for storage
                 upload_rate=int(bw_stats.get('upload_bps', 0)),

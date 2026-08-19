@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import psutil
 from app.services.bandwidth_monitor import bandwidth_monitor
 from app.services.history_service import HistoryService
+from app.services.packet_capture import packet_capture_service
 
 router = APIRouter()
 # History service instance
@@ -63,6 +64,8 @@ async def select_interface(interface_name: str):
     bandwidth_monitor.set_selected_interface(interface_name)
     bandwidth_monitor.start_monitoring()
     history_service.start()
+    # Start packet capture for the selected interface
+    packet_capture_service.start_capture(interface_name)
     return {"message": f"Monitoring started for interface {interface_name}"}
 
 @router.post("/interfaces/deselect")
@@ -71,4 +74,6 @@ async def deselect_interface():
     bandwidth_monitor.set_selected_interface(None)
     bandwidth_monitor.stop_monitoring_thread()
     history_service.stop()
+    # Stop packet capture
+    packet_capture_service.stop_capture()
     return {"message": "Interface monitoring stopped"}

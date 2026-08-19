@@ -136,7 +136,7 @@ export const getTopDestinationPorts = async (limit = 10, sortBy = 'bytes') => {
 
 export const getHistory = async (limit = 100, startTime = null, endTime = null) => {
   try {
-    let url = `${API_BASE_URL}/history?limit=${limit}`;
+    let url = `${API_BASE_URL}/?limit=${limit}`;
     if (startTime) {
       url += `&start_time=${encodeURIComponent(startTime)}`;
     }
@@ -156,7 +156,7 @@ export const getHistory = async (limit = 100, startTime = null, endTime = null) 
 
 export const getLatestHistory = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/history/latest`);
+    const response = await fetch(`${API_BASE_URL}/latest`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -169,7 +169,7 @@ export const getLatestHistory = async () => {
 
 export const clearHistory = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/history`, {
+    const response = await fetch(`${API_BASE_URL}/`, {
       method: 'DELETE'
     });
     if (!response.ok) {

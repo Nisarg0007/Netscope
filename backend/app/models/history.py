@@ -1,13 +1,13 @@
 from sqlalchemy import Column, Integer, BigInteger, DateTime, String
 from app.database import Base
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class NetworkHistory(Base):
     __tablename__ = "network_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    timestamp = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
     interface = Column(String, nullable=True)
     download_rate = Column(BigInteger, default=0)  # in bits per second
     upload_rate = Column(BigInteger, default=0)  # in bits per second
