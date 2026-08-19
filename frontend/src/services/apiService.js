@@ -68,3 +68,16 @@ export const fetchStats = async () => {
     throw error;
   }
 };
+
+export const getProtocolStats = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/protocol-analysis/stats`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching protocol stats:', error);
+    throw error;
+  }
+};

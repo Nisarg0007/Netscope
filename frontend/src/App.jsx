@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchHealth } from './services/apiService';
 import InterfaceSelector from './components/InterfaceSelector';
 import BandwidthDisplay from './components/BandwidthDisplay';
+import ProtocolAnalysis from './components/ProtocolAnalysis';
 import './index.css';
 
 function App() {
@@ -78,7 +79,12 @@ function App() {
               </p>
             </div>
             <InterfaceSelector onInterfaceSelect={setSelectedInterface} onInterfaceDeselect={() => setSelectedInterface(null)} />
-            {selectedInterface && <BandwidthDisplay selectedInterface={selectedInterface} />}
+            {selectedInterface && (
+              <>
+                <BandwidthDisplay selectedInterface={selectedInterface} />
+                <ProtocolAnalysis />
+              </>
+            )}
           </div>
         </div>
       </main>
