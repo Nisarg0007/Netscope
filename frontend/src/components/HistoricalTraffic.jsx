@@ -86,11 +86,11 @@ const HistoricalTraffic = () => {
   if (loading && snapshots.length === 0) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Historical Network Traffic
         </h2>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-textSecondary/20 rounded w-1/2"></div>
         </div>
       </div>
     );
@@ -99,11 +99,11 @@ const HistoricalTraffic = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Historical Network Traffic
         </h2>
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-500">{error}</p>
+        <div className="p-4 bg-statusError/10 border border-statusError rounded">
+          <p className="text-statusError">{error}</p>
         </div>
       </div>
     );
@@ -112,11 +112,11 @@ const HistoricalTraffic = () => {
   if (snapshots.length === 0) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Historical Network Traffic
         </h2>
-        <div className="p-6 bg-blue-50 border border-blue-200 rounded text-center">
-          <p className="text-gray-600">
+        <div className="p-6 bg-accentPrimary/10 border border-accentPrimary rounded text-center">
+          <p className="text-textSecondary">
             No historical traffic data available yet. Select an interface and allow monitoring to collect snapshots.
           </p>
         </div>
@@ -131,18 +131,18 @@ const HistoricalTraffic = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <h2 className="text-xl font-semibold text-textPrimary mb-4">
         Historical Network Traffic
       </h2>
 
       {/* Controls */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Snapshots:</span>
+          <span className="text-sm font-medium text-textSecondary">Snapshots:</span>
           <select
             value={limit}
             onChange={(e) => setLimit(parseInt(e.target.value))}
-            className="border rounded px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-bgCard border border-border rounded px-3 py-1 text-textPrimary focus:outline-none focus:ring-2 focus-ring-accentPrimary"
           >
             <option value="10">10</option>
             <option value="50">50</option>
@@ -153,7 +153,7 @@ const HistoricalTraffic = () => {
         <div className="flex items-center space-x-4">
           <button
             onClick={handleClearHistory}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+            className="px-4 py-2 bg-statusError text-textPrimary rounded hover:bg-statusError/80 transition-colors text-sm"
           >
             Clear History
           </button>
@@ -161,32 +161,32 @@ const HistoricalTraffic = () => {
       </div>
 
       {/* Summary */}
-      <div className="mb-6 bg-white rounded-lg shadow-md p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="mb-6 bg-bgCard rounded-lg shadow-md p-4">
+        <h3 className="text-lg font-semibold text-textPrimary mb-4">
           Summary
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <p className="text-gray-500">Snapshots</p>
-            <p className="font-medium">{snapshots.length}</p>
+            <p className="text-textSecondary">Snapshots</p>
+            <p className="font-medium text-textPrimary">{snapshots.length}</p>
           </div>
           {sortedSnapshots.length > 0 && (
             <>
               <div>
-                <p className="text-gray-500">Latest Download Rate</p>
-                <p className="font-medium">
+                <p className="text-textSecondary">Latest Download Rate</p>
+                <p className="font-medium text-textPrimary">
                   {formatBandwidth(sortedSnapshots[sortedSnapshots.length - 1].download_rate)}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Latest Upload Rate</p>
-                <p className="font-medium">
+                <p className="text-textSecondary">Latest Upload Rate</p>
+                <p className="font-medium text-textPrimary">
                   {formatBandwidth(sortedSnapshots[sortedSnapshots.length - 1].upload_rate)}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Latest Timestamp</p>
-                <p className="font-medium">
+                <p className="text-textSecondary">Latest Timestamp</p>
+                <p className="font-medium text-textPrimary">
                   {formatTimestamp(sortedSnapshots[sortedSnapshots.length - 1].timestamp)}
                 </p>
               </div>
@@ -198,15 +198,15 @@ const HistoricalTraffic = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6">
         {/* Bandwidth Chart */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Bandwidth Trend (Download vs Upload)
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={sortedSnapshots}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timestamp" tickFormatter={formatTimestamp} />
-              <YAxis label={{ value: 'Rate', angle: -90, position: 'insideLeft' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="text-textSecondary/20" />
+              <XAxis dataKey="timestamp" tickFormatter={formatTimestamp} text="text-textPrimary" />
+              <YAxis label={{ value: 'Rate', angle: -90, position: 'insideLeft' }} text="text-textPrimary" />
               <Tooltip formatter={(value, name) => {
                 if (name === 'download_rate' || name === 'upload_rate') {
                   return `${name === 'download_rate' ? 'Download' : 'Upload'}: ${formatBandwidth(value)}`;
@@ -221,15 +221,15 @@ const HistoricalTraffic = () => {
         </div>
 
         {/* Packet Activity Chart */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Packet Activity Over Time
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={sortedSnapshots}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="timestamp" tickFormatter={formatTimestamp} />
-              <YAxis label={{ value: 'Packets', angle: -90, position: 'insideLeft' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="text-textSecondary/20" />
+              <XAxis dataKey="timestamp" tickFormatter={formatTimestamp} text="text-textPrimary" />
+              <YAxis label={{ value: 'Packets', angle: -90, position: 'insideLeft' }} text="text-textPrimary" />
               <Tooltip formatter={(value, name) => {
                 return `${name}: ${value.toLocaleString()}`;
               }} />

@@ -4,6 +4,7 @@ class WebSocketService {
   constructor() {
     this.ws = null;
     this.listeners = [];
+    this.shouldReconnect = true;
   }
 
   connect() {
@@ -22,8 +23,10 @@ class WebSocketService {
 
     this.ws.onclose = () => {
       console.log('WebSocket disconnected');
-      // Try to reconnect after 3 seconds
-      setTimeout(() => this.connect(), 3000);
+      if (this.shouldReconnect) {
+        // Try to reconnect after 3 seconds
+        setTimeout(() => this.connect(), 3000);
+      }
     };
 
     this.ws.onerror = (error) => {
@@ -33,10 +36,16 @@ class WebSocketService {
 
   disconnect() {
     console.log('WebSocket disconnecting');
+    this.shouldReconnect = false;
     if (this.ws) {
       this.ws.close();
       this.ws = null;
     }
+  }
+
+  // Used by BandwidthDisplay to allow reconnection when interface is selected again
+  resetReconnect() {
+    this.shouldReconnect = true;
   }
 
   subscribe(callback) {

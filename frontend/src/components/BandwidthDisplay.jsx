@@ -30,6 +30,8 @@ const BandwidthDisplay = ({ selectedInterface }) => {
           await selectInterface(selectedInterface);
           setIsMonitoring(true);
           setError(null);
+          // Allow reconnection if connection drops unexpectedly
+          wsService.resetReconnect();
           // Connect WebSocket when monitoring starts
           wsService.connect();
         } catch (err) {
@@ -103,64 +105,64 @@ const BandwidthDisplay = ({ selectedInterface }) => {
   };
 
   if (error) {
-    return <div className="p-4 text-red-500">{error}</div>;
+    return <div className="p-4 text-statusError">{error}</div>;
   }
 
   if (!selectedInterface) {
-    return <div className="p-4 text-gray-500">Select an interface to monitor bandwidth</div>;
+    return <div className="p-4 text-textSecondary">Select an interface to monitor bandwidth</div>;
   }
 
   return (
     <div className="p-4">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-2">Bandwidth Monitoring: {selectedInterface}</h3>
-        <p className={`text-sm ${isMonitoring ? 'text-green-600' : 'text-gray-500'}`}>
+        <h3 className="text-lg font-semibold text-textPrimary mb-2">Bandwidth Monitoring: {selectedInterface}</h3>
+        <p className={`text-sm ${isMonitoring ? 'text-statusSuccess' : 'text-textSecondary'}`}>
           {isMonitoring ? 'Monitoring active' : 'Monitoring stopped'}
         </p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-sm font-medium text-gray-500">Download Speed</p>
-          <p className="text-2xl font-bold text-blue-600">{formatBitsPerSec(stats.download_bps)}</p>
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <p className="text-sm font-medium text-textSecondary">Download Speed</p>
+          <p className="text-2xl font-bold text-accentPrimary">{formatBitsPerSec(stats.download_bps)}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-sm font-medium text-gray-500">Upload Speed</p>
-          <p className="text-2xl font-bold text-green-600">{formatBitsPerSec(stats.upload_bps)}</p>
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <p className="text-sm font-medium text-textSecondary">Upload Speed</p>
+          <p className="text-2xl font-bold text-statusSuccess">{formatBitsPerSec(stats.upload_bps)}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-sm font-medium text-gray-500">Packets/sec</p>
-          <p className="text-2xl font-bold text-purple-600">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <p className="text-sm font-medium text-textSecondary">Packets/sec</p>
+          <p className="text-2xl font-bold text-accentSecondary">
             {Math.round(stats.packet_download_pps + stats.packet_upload_pps)}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-textSecondary/50">
             ↓{Math.round(stats.packet_download_pps)} ↑{Math.round(stats.packet_upload_pps)}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-sm font-medium text-gray-500">Total Received</p>
-          <p className="text-2xl font-bold text-indigo-600">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <p className="text-sm font-medium text-textSecondary">Total Received</p>
+          <p className="text-2xl font-bold text-accentPrimary">
             {formatBytes(stats.total_bytes_recv)}
           </p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-sm font-medium text-gray-500">Total Sent</p>
-          <p className="text-2xl font-bold text-indigo-600">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <p className="text-sm font-medium text-textSecondary">Total Sent</p>
+          <p className="text-2xl font-bold text-accentPrimary">
             {formatBytes(stats.total_bytes_sent)}
           </p>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-semibold mb-4">Bandwidth Usage (Mbps) - Last 30 Seconds</h3>
+      <div className="bg-bgCard rounded-lg shadow-md p-6">
+        <h3 className="text-xl font-semibold text-textPrimary mb-4">Bandwidth Usage (Mbps) - Last 30 Seconds</h3>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} />
-              <YAxis label={{ value: 'Mbps', angle: -90, position: 'insideLeft' }} tick={{ fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="text-textSecondary/20" />
+              <XAxis dataKey="time" tick={{ fontSize: 12 }} text="text-textPrimary" />
+              <YAxis label={{ value: 'Mbps', angle: -90, position: 'insideLeft' }} tick={{ fontSize: 12 }} text="text-textPrimary" />
               <Tooltip formatter={(value) => `${value} Mbps`} />
               <Legend verticalAlign="top" height={36} />
               <Line type="monotone" dataKey="download" stroke="#4299e1" strokeWidth={2} dot={false} />
@@ -168,45 +170,45 @@ const BandwidthDisplay = ({ selectedInterface }) => {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500">Collecting data for chart...</p>
+          <p className="text-textSecondary">Collecting data for chart...</p>
         )}
       </div>
 
       {/* Detailed Statistics */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-semibold mb-2">Detailed Statistics</h4>
+      <div className="mt-6 p-4 bg-accentPrimary/10 rounded-lg">
+        <h4 className="font-semibold text-textPrimary mb-2">Detailed Statistics</h4>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Download Rate:</span>
-            <span className="font-mono">{formatBitsPerSec(stats.download_bps)}</span>
+            <span className="font-mono text-textPrimary">{formatBitsPerSec(stats.download_bps)}</span>
           </div>
           <div className="flex justify-between">
             <span>Upload Rate:</span>
-            <span className="font-mono">{formatBitsPerSec(stats.upload_bps)}</span>
+            <span className="font-mono text-textPrimary">{formatBitsPerSec(stats.upload_bps)}</span>
           </div>
           <div className="flex justify-between">
             <span>Packet Download Rate:</span>
-            <span className="font-mono">{stats.packet_download_pps.toFixed(1)} pps</span>
+            <span className="font-mono text-textPrimary">{stats.packet_download_pps.toFixed(1)} pps</span>
           </div>
           <div className="flex justify-between">
             <span>Packet Upload Rate:</span>
-            <span className="font-mono">{stats.packet_upload_pps.toFixed(1)} pps</span>
+            <span className="font-mono text-textPrimary">{stats.packet_upload_pps.toFixed(1)} pps</span>
           </div>
           <div className="flex justify-between">
             <span>Total Received:</span>
-            <span className="font-mono">{formatBytes(stats.total_bytes_recv)}</span>
+            <span className="font-mono text-textPrimary">{formatBytes(stats.total_bytes_recv)}</span>
           </div>
           <div className="flex justify-between">
             <span>Total Sent:</span>
-            <span className="font-mono">{formatBytes(stats.total_bytes_sent)}</span>
+            <span className="font-mono text-textPrimary">{formatBytes(stats.total_bytes_sent)}</span>
           </div>
           <div className="flex justify-between">
             <span>Packets Received:</span>
-            <span className="font-mono">{stats.total_packets_recv.toLocaleString()}</span>
+            <span className="font-mono text-textPrimary">{stats.total_packets_recv.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
             <span>Packets Sent:</span>
-            <span className="font-mono">{stats.total_packets_sent.toLocaleString()}</span>
+            <span className="font-mono text-textPrimary">{stats.total_packets_sent.toLocaleString()}</span>
           </div>
         </div>
       </div>

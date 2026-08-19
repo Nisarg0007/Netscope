@@ -32,7 +32,7 @@ const IPAnalysis = () => {
     fetchIPData();
     const interval = setInterval(fetchIPData, 2000); // Refresh every 2 seconds
     return () => clearInterval(interval);
-  }, [limit, sortBy]); // Re-fetch when limit or sortBy changes
+  }, [limit, sortBy]);
 
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 B';
@@ -45,11 +45,11 @@ const IPAnalysis = () => {
   if (loading && (!sourceData && !destData)) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           IP Traffic Analysis
         </h2>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-textSecondary/20 rounded w-1/2"></div>
         </div>
       </div>
     );
@@ -58,11 +58,11 @@ const IPAnalysis = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           IP Traffic Analysis
         </h2>
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-500">{error}</p>
+        <div className="p-4 bg-statusError/10 border border-statusError rounded">
+          <p className="text-statusError">{error}</p>
         </div>
       </div>
     );
@@ -74,11 +74,11 @@ const IPAnalysis = () => {
   if (!hasSourceData && !hasDestData) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           IP Traffic Analysis
         </h2>
-        <div className="p-6 bg-blue-50 border border-blue-200 rounded text-center">
-          <p className="text-gray-600">
+        <div className="p-6 bg-accentPrimary/10 border border-accentPrimary rounded text-center">
+          <p className="text-textSecondary">
             No IP traffic data available yet. Start packet capture and generate network traffic.
           </p>
         </div>
@@ -88,29 +88,29 @@ const IPAnalysis = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <h2 className="text-xl font-semibold text-textPrimary mb-4">
         IP Traffic Analysis
       </h2>
 
       {/* Controls */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-textSecondary">Sort by:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="border rounded px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-bgCard border border-border rounded px-3 py-1 text-textPrimary focus:outline-none focus:ring-2 focus-ring-accentPrimary"
           >
             <option value="bytes">Total Bytes</option>
             <option value="packet_count">Packet Count</option>
           </select>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Show:</span>
+          <span className="text-sm font-medium text-textSecondary">Show:</span>
           <select
             value={limit}
             onChange={(e) => setLimit(parseInt(e.target.value))}
-            className="border rounded px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-bgCard border border-border rounded px-3 py-1 text-textPrimary focus:outline-none focus:ring-2 focus-ring-accentPrimary"
           >
             <option value="5">5</option>
             <option value="10">10</option>
@@ -123,8 +123,8 @@ const IPAnalysis = () => {
       {/* Source and Destination Sections */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Source IPs */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Top Source IPs
           </h3>
           {hasSourceData ? (
@@ -133,15 +133,15 @@ const IPAnalysis = () => {
                 <div key={ip.ip_address} className="border-b pb-2 last:border-b-0">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">#{index + 1} {ip.ip_address}</span>
-                    <span className="text-gray-500">
+                    <span className="text-textSecondary">
                       {ip.packet_percentage?.toFixed(1)}% packets
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packets: {ip.packet_count?.toLocaleString() || '0'}</span>
                     <span>Bytes: {formatBytes(ip.total_bytes || 0)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packet %: {ip.packet_percentage?.toFixed(1)}%</span>
                     <span>Byte %: {ip.byte_percentage?.toFixed(1)}%</span>
                   </div>
@@ -149,13 +149,13 @@ const IPAnalysis = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No source IP data</p>
+            <p className="text-textSecondary text-center py-4">No source IP data</p>
           )}
         </div>
 
         {/* Destination IPs */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Top Destination IPs
           </h3>
           {hasDestData ? (
@@ -164,15 +164,15 @@ const IPAnalysis = () => {
                 <div key={ip.ip_address} className="border-b pb-2 last:border-b-0">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">#{index + 1} {ip.ip_address}</span>
-                    <span className="text-gray-500">
+                    <span className="text-textSecondary">
                       {ip.packet_percentage?.toFixed(1)}% packets
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packets: {ip.packet_count?.toLocaleString() || '0'}</span>
                     <span>Bytes: {formatBytes(ip.total_bytes || 0)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packet %: {ip.packet_percentage?.toFixed(1)}%</span>
                     <span>Byte %: {ip.byte_percentage?.toFixed(1)}%</span>
                   </div>
@@ -180,7 +180,7 @@ const IPAnalysis = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No destination IP data</p>
+            <p className="text-textSecondary text-center py-4">No destination IP data</p>
           )}
         </div>
       </div>

@@ -45,11 +45,11 @@ const PortAnalysis = () => {
   if (loading && (!sourceData && !destData)) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Port Traffic Analysis
         </h2>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-textSecondary/20 rounded w-1/2"></div>
         </div>
       </div>
     );
@@ -58,11 +58,11 @@ const PortAnalysis = () => {
   if (error) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Port Traffic Analysis
         </h2>
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-500">{error}</p>
+        <div className="p-4 bg-statusError/10 border border-statusError rounded">
+          <p className="text-statusError">{error}</p>
         </div>
       </div>
     );
@@ -74,11 +74,11 @@ const PortAnalysis = () => {
   if (!hasSourceData && !hasDestData) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-textPrimary mb-4">
           Port Traffic Analysis
         </h2>
-        <div className="p-6 bg-blue-50 border border-blue-200 rounded text-center">
-          <p className="text-gray-600">
+        <div className="p-6 bg-accentPrimary/10 border border-accentPrimary rounded text-center">
+          <p className="text-textSecondary">
             No port traffic data available yet. Start packet capture and generate network traffic.
           </p>
         </div>
@@ -88,29 +88,29 @@ const PortAnalysis = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <h2 className="text-xl font-semibold text-textPrimary mb-4">
         Port Traffic Analysis
       </h2>
 
       {/* Controls */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-textSecondary">Sort by:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="border rounded px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-bgCard border border-border rounded px-3 py-1 text-textPrimary focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="bytes">Total Bytes</option>
             <option value="packet_count">Packet Count</option>
           </select>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Show:</span>
+          <span className="text-sm font-medium text-textSecondary">Show:</span>
           <select
             value={limit}
             onChange={(e) => setLimit(parseInt(e.target.value))}
-            className="border rounded px-3 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="bg-bgCard border border-border rounded px-3 py-1 text-textPrimary focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="5">5</option>
             <option value="10">10</option>
@@ -123,28 +123,28 @@ const PortAnalysis = () => {
       {/* Source and Destination Sections */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Source Ports */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Top Source Ports
           </h3>
           {hasSourceData ? (
             <div className="space-y-2">
               {sourceData.map((port, index) => (
-                <div key={`${port.port}-${port.protocol}`} className="border-b pb-2 last:border-b-0">
+                <div key={`${port.port}-${port.protocol}`} className="border-border pb-2 last:border-b-0">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">#{index + 1} {port.port} ({port.protocol})</span>
-                    <span className="text-gray-500">
+                    <span className="text-textSecondary">
                       {port.packet_percentage?.toFixed(1)}% packets
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Service: {port.common_service || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packets: {port.packet_count?.toLocaleString() || '0'}</span>
                     <span>Bytes: {formatBytes(port.total_bytes || 0)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packet %: {port.packet_percentage?.toFixed(1)}%</span>
                     <span>Byte %: {port.byte_percentage?.toFixed(1)}%</span>
                   </div>
@@ -152,33 +152,33 @@ const PortAnalysis = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No source port data</p>
+            <p className="text-textSecondary text-center py-4">No source port data</p>
           )}
         </div>
 
         {/* Destination Ports */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-bgCard rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold text-textPrimary mb-4">
             Top Destination Ports
           </h3>
           {hasDestData ? (
             <div className="space-y-2">
               {destData.map((port, index) => (
-                <div key={`${port.port}-${port.protocol}`} className="border-b pb-2 last:border-b-0">
+                <div key={`${port.port}-${port.protocol}`} className="border-border pb-2 last:border-b-0">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">#{index + 1} {port.port} ({port.protocol})</span>
-                    <span className="text-gray-500">
+                    <span className="text-textSecondary">
                       {port.packet_percentage?.toFixed(1)}% packets
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Service: {port.common_service || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packets: {port.packet_count?.toLocaleString() || '0'}</span>
                     <span>Bytes: {formatBytes(port.total_bytes || 0)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-textSecondary mt-1">
                     <span>Packet %: {port.packet_percentage?.toFixed(1)}%</span>
                     <span>Byte %: {port.byte_percentage?.toFixed(1)}%</span>
                   </div>
@@ -186,7 +186,7 @@ const PortAnalysis = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">No destination port data</p>
+            <p className="text-textSecondary text-center py-4">No destination port data</p>
           )}
         </div>
       </div>

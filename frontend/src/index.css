@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Theme variables */
+:root {
+  /* Light theme */
+  --color-bg-main: hsl(0, 0%, 98%);
+  --color-bg-surface: hsl(0, 0%, 100%);
+  --color-bg-card: hsl(0, 0%, 100%);
+  --color-border: hsl(0, 0%, 85%);
+  --color-text-primary: hsl(220, 20%, 20%);
+  --color-text-secondary: hsl(220, 10%, 40%);
+  --color-accent-primary: hsl(195, 80%, 50%);
+  --color-accent-secondary: hsl(220, 70%, 40%);
+  --color-status-success: hsl(140, 60%, 40%);
+  --color-status-warning: hsl(45, 80%, 50%);
+  --color-status-error: hsl(0, 70%, 50%);
+}
+
+.dark {
+  /* Dark theme */
+  --color-bg-main: hsl(220, 20%, 15%);
+  --color-bg-surface: hsl(220, 20%, 20%);
+  --color-bg-card: hsl(220, 20%, 25%);
+  --color-border: hsl(220, 15%, 60%);
+  --color-text-primary: hsl(220, 10%, 95%);
+  --color-text-secondary: hsl(220, 10%, 70%);
+  --color-accent-primary: hsl(195, 80%, 50%);
+  --color-accent-secondary: hsl(220, 70%, 40%);
+  --color-status-success: hsl(140, 60%, 40%);
+  --color-status-warning: hsl(45, 80%, 50%);
+  --color-status-error: hsl(0, 70%, 50%);
+}
+
+/* Apply theme variables to body and other elements */
+body {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure transitions for common elements */
+*,
+*::before,
+*::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

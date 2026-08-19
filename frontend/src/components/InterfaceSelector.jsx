@@ -35,24 +35,24 @@ const InterfaceSelector = ({ onInterfaceSelect, onInterfaceDeselect }) => {
   };
 
   if (loading) {
-    return <div className="p-4">Loading network interfaces...</div>;
+    return <div className="p-4 text-textPrimary">Loading network interfaces...</div>;
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">{error}</div>;
+    return <div className="p-4 text-statusError">{error}</div>;
   }
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">Network Interfaces</h2>
+      <h2 className="text-xl font-semibold text-textPrimary mb-4">Network Interfaces</h2>
       {interfaces.length === 0 ? (
-        <p className="text-gray-500">No network interfaces found.</p>
+        <p className="text-textSecondary">No network interfaces found.</p>
       ) : (
         <div className="space-y-2">
           {interfaces.map((iface) => (
             <div
               key={iface.name}
-              className="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="border border-border rounded-lg p-3 hover:bg-bgCard/50 transition-colors cursor-pointer"
               onClick={() => {
                 if (selectedInterface === iface.name) {
                   handleDeselect();
@@ -69,17 +69,17 @@ const InterfaceSelector = ({ onInterfaceSelect, onInterfaceDeselect }) => {
                     name="interface-select"
                     checked={selectedInterface === iface.name}
                     readOnly
-                    className="h-4 w-4 text-indigo-600"
+                    className="h-4 w-4 text-accentSecondary"
                   />
                   <span className="ml-2 font-mono">{iface.name}</span>
                 </div>
                 {selectedInterface === iface.name && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                  <span className="bg-statusSuccess/20 text-statusSuccess text-xs px-2 py-1 rounded">
                     Selected
                   </span>
                 )}
               </div>
-              <div className="mt-2 space-y-1 text-sm text-gray-600">
+              <div className="mt-2 space-y-1 text-sm text-textSecondary">
                 <div>
                   <span className="font-medium">IPv4:</span> {iface.ipv4 || 'None'}
                 </div>
@@ -91,7 +91,7 @@ const InterfaceSelector = ({ onInterfaceSelect, onInterfaceDeselect }) => {
                 </div>
                 <div>
                   <span className="font-medium">Status:</span>
-                  <span className={`font-medium ${iface.status === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`font-medium ${iface.status === 'up' ? 'text-statusSuccess' : 'text-statusError'}`}>
                     {iface.status}
                   </span>
                 </div>
@@ -111,12 +111,12 @@ const InterfaceSelector = ({ onInterfaceSelect, onInterfaceDeselect }) => {
         </div>
       )}
       {selectedInterface && (
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-semibold mb-2">Selected Interface</h3>
-          <p className="font-mono">{selectedInterface}</p>
+        <div className="mt-6 p-4 bg-accentPrimary/10 rounded-lg">
+          <h3 className="font-semibold text-textPrimary mb-2">Selected Interface</h3>
+          <p className="font-mono text-textPrimary">{selectedInterface}</p>
           <button
             onClick={handleDeselect}
-            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            className="mt-2 px-4 py-2 bg-statusError text-textPrimary rounded hover:bg-statusError/80 transition-colors"
           >
             Stop Monitoring
           </button>

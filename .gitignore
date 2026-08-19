@@ -48,3 +48,4 @@ build/
 
 # Temporary development/debug files
 fix_status.txt
+memory/
