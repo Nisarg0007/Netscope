@@ -133,3 +133,51 @@ export const getTopDestinationPorts = async (limit = 10, sortBy = 'bytes') => {
     throw error;
   }
 };
+
+export const getHistory = async (limit = 100, startTime = null, endTime = null) => {
+  try {
+    let url = `${API_BASE_URL}/history?limit=${limit}`;
+    if (startTime) {
+      url += `&start_time=${encodeURIComponent(startTime)}`;
+    }
+    if (endTime) {
+      url += `&end_time=${encodeURIComponent(endTime)}`;
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    throw error;
+  }
+};
+
+export const getLatestHistory = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/history/latest`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching latest history:', error);
+    throw error;
+  }
+};
+
+export const clearHistory = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/history`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error clearing history:', error);
+    throw error;
+  }
+};

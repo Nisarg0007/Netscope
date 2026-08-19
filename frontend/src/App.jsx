@@ -5,6 +5,7 @@ import BandwidthDisplay from './components/BandwidthDisplay';
 import ProtocolAnalysis from './components/ProtocolAnalysis';
 import IPAnalysis from './components/IPAnalysis';
 import PortAnalysis from './components/PortAnalysis';
+import HistoricalTraffic from './components/HistoricalTraffic';
 import './index.css';
 
 function App() {
@@ -87,6 +88,7 @@ function App() {
                 <ProtocolAnalysis />
                 <IPAnalysis />
                 <PortAnalysis />
+                <HistoricalTraffic />
               </>
             )}
           </div>
