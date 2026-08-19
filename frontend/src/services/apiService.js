@@ -107,3 +107,29 @@ export const getTopDestinationIPs = async (limit = 10, sortBy = 'bytes') => {
     throw error;
   }
 };
+
+export const getTopSourcePorts = async (limit = 10, sortBy = 'bytes') => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/port-analysis/stats/source?limit=${limit}&sort_by=${sortBy}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching top source ports:', error);
+    throw error;
+  }
+};
+
+export const getTopDestinationPorts = async (limit = 10, sortBy = 'bytes') => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/port-analysis/stats/destination?limit=${limit}&sort_by=${sortBy}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching top destination ports:', error);
+    throw error;
+  }
+};

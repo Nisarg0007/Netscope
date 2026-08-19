@@ -4,6 +4,7 @@ import InterfaceSelector from './components/InterfaceSelector';
 import BandwidthDisplay from './components/BandwidthDisplay';
 import ProtocolAnalysis from './components/ProtocolAnalysis';
 import IPAnalysis from './components/IPAnalysis';
+import PortAnalysis from './components/PortAnalysis';
 import './index.css';
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
                 <BandwidthDisplay selectedInterface={selectedInterface} />
                 <ProtocolAnalysis />
                 <IPAnalysis />
+                <PortAnalysis />
               </>
             )}
           </div>
