@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { fetchStats, selectInterface, deselectInterface } from '../services/apiService';
+import { fetchStats } from '../services/apiService';
 import { wsService } from '../services/wsService';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const BandwidthDisplay = ({ selectedInterface }) => {
+const BandwidthDisplay = ({ selectedInterface, captureActive }) => {
   const [stats, setStats] = useState({
     download_bps: 0,
     upload_bps: 0,
@@ -22,62 +22,54 @@ const BandwidthDisplay = ({ selectedInterface }) => {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    console.log('BandwidthDisplay useEffect running with selectedInterface:', selectedInterface);
-    // Start monitoring and connect WebSocket when interface is selected
-    if (selectedInterface) {
-      const startMonitoring = async () => {
-        try {
-          await selectInterface(selectedInterface);
-          setIsMonitoring(true);
-          setError(null);
-          // Allow reconnection if connection drops unexpectedly
-          wsService.resetReconnect();
-          // Connect WebSocket when monitoring starts
-          wsService.connect();
-        } catch (err) {
-          setError('Failed to start monitoring');
-          console.error(err);
-        }
-      };
-      startMonitoring();
-    } else {
-      // Disconnect WebSocket when interface is deselected
-      console.log('No selected interface, disconnecting WebSocket');
+    if (!selectedInterface || !captureActive) {
+      setIsMonitoring(false);
       wsService.disconnect();
+      return undefined;
     }
 
-    // Subscribe to WebSocket updates
-    const unsubscribe = wsService.subscribe((data) => {
-      console.log('Received WebSocket data:', data);
-      setStats(data);
-      // Update chart data
-      const now = new Date();
-      const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-      const newData = {
-        time: timeString,
-        download: data.download_mbps,
-        upload: data.upload_mbps
-      };
-      setChartData(prev => {
-        const updated = [...prev, newData];
-        // Keep only last 30 points
-        if (updated.length > 30) {
-          updated.shift();
-        }
-        return updated;
-      });
-    });
+    let effectActive = true;
+    setIsMonitoring(true);
+    setError(null);
+    wsService.resetReconnect();
 
-    // Cleanup on unmount or when selectedInterface changes
-    return () => {
-      console.log('Cleaning up BandwidthDisplay useEffect');
-      unsubscribe();
-      wsService.disconnect();
-      if (selectedInterface) {
-        deselectInterface().catch(console.error);
+    const applySample = (data) => {
+      if (!effectActive || !data || !data.timestamp) return;
+      setStats(data);
+      const sampleId = data.timestamp;
+      setChartData((previous) => {
+        if (previous[previous.length - 1]?.sampleId === sampleId) return previous;
+        return [...previous, {
+          sampleId,
+          timeMs: new Date(data.timestamp).getTime(),
+          download: (Number(data.download_mbps) || 0) * 8,
+          upload: (Number(data.upload_mbps) || 0) * 8,
+        }].slice(-30);
+      });
+    };
+
+    const unsubscribe = wsService.subscribe(applySample);
+    wsService.connect();
+
+    // Keep the display populated when a browser or local proxy drops WebSocket frames.
+    const pollStats = async () => {
+      try {
+        const data = await fetchStats();
+        applySample(data);
+      } catch (pollError) {
+        console.warn('Bandwidth REST fallback failed:', pollError);
       }
     };
-  }, [selectedInterface]);
+    pollStats();
+    const pollInterval = window.setInterval(pollStats, 1000);
+
+    return () => {
+      effectActive = false;
+      window.clearInterval(pollInterval);
+      unsubscribe();
+      wsService.disconnect();
+    };
+  }, [selectedInterface, captureActive]);
 
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 B';
@@ -87,21 +79,16 @@ const BandwidthDisplay = ({ selectedInterface }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatBitsPerSec = (bps) => {
+  const formatBitsPerSec = (bytesPerSecond) => {
+    const bps = (Number(bytesPerSecond) || 0) * 8;
     if (bps === 0) return '0 bps';
     const kbps = bps / 1000;
     const mbps = kbps / 1000;
     const gbps = mbps / 1000;
-
-    if (gbps >= 1) {
-      return gbps.toFixed(2) + ' Gbps';
-    } else if (mbps >= 1) {
-      return mbps.toFixed(2) + ' Mbps';
-    } else if (kbps >= 1) {
-      return kbps.toFixed(2) + ' Kbps';
-    } else {
-      return bps.toFixed(2) + ' bps';
-    }
+    if (gbps >= 1) return `${gbps.toFixed(2)} Gbps`;
+    if (mbps >= 1) return `${mbps.toFixed(2)} Mbps`;
+    if (kbps >= 1) return `${kbps.toFixed(2)} Kbps`;
+    return `${bps.toFixed(0)} bps`;
   };
 
   if (error) {
@@ -157,18 +144,18 @@ const BandwidthDisplay = ({ selectedInterface }) => {
       {/* Chart */}
       <div className="bg-bgCard rounded-lg shadow-md p-6">
         <h3 className="text-xl font-semibold text-textPrimary mb-4">Bandwidth Usage (Mbps) - Last 30 Seconds</h3>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="text-textSecondary/20" />
-              <XAxis dataKey="time" tick={{ fontSize: 12 }} text="text-textPrimary" />
-              <YAxis label={{ value: 'Mbps', angle: -90, position: 'insideLeft' }} tick={{ fontSize: 12 }} text="text-textPrimary" />
-              <Tooltip formatter={(value) => `${value} Mbps`} />
+        {chartData.length > 0 ? (<div className="bandwidth-chart-container">
+          <div className="plot-axis-caption"><span>Y · Throughput (Mbps)</span><span>X · Sample time</span></div><ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData}>
+              <defs><linearGradient id="liveDownloadFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38c3cd" stopOpacity={0.36} /><stop offset="95%" stopColor="#38c3cd" stopOpacity={0.015} /></linearGradient><linearGradient id="liveUploadFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8877e8" stopOpacity={0.28} /><stop offset="95%" stopColor="#8877e8" stopOpacity={0.015} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+              <XAxis dataKey="timeMs" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={(value) => new Date(value).toLocaleTimeString([], { minute: '2-digit', second: '2-digit' })} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+              <YAxis unit=" Mbps" tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+              <Tooltip labelFormatter={(value) => new Date(value).toLocaleString()} formatter={(value, name) => [`${Number(value).toFixed(3)} Mbps`, name === 'download' ? 'Download' : 'Upload']} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
               <Legend verticalAlign="top" height={36} />
-              <Line type="monotone" dataKey="download" stroke="#4299e1" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="upload" stroke="#48bb78" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+              <Area type="monotone" dataKey="download" name="Download" stroke="#38c3cd" strokeWidth={2.5} fill="url(#liveDownloadFill)" dot={false} activeDot={{ r: 4 }} />
+              <Area type="monotone" dataKey="upload" name="Upload" stroke="#8877e8" strokeWidth={2.5} fill="url(#liveUploadFill)" dot={false} activeDot={{ r: 4 }} />
+            </AreaChart>
+          </ResponsiveContainer></div>
         ) : (
           <p className="text-textSecondary">Collecting data for chart...</p>
         )}
@@ -217,3 +204,14 @@ const BandwidthDisplay = ({ selectedInterface }) => {
 };
 
 export default BandwidthDisplay;
+
+
+
+
+
+
+
+
+
+
+

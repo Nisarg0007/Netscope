@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getProtocolStats } from '../services/apiService';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const ProtocolAnalysis = () => {
   const [stats, setStats] = useState(null);
@@ -7,172 +8,67 @@ const ProtocolAnalysis = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProtocolData = async () => {
-      setLoading(true);
-      setError(null);
+    let active = true;
+    const load = async () => {
       try {
         const data = await getProtocolStats();
-        setStats(data);
+        if (active) { setStats(data); setError(null); }
       } catch (err) {
-        setError('Failed to load protocol statistics');
+        if (active) setError('Failed to load protocol statistics');
         console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      } finally { if (active) setLoading(false); }
     };
-
-    fetchProtocolData();
-    const interval = setInterval(fetchProtocolData, 2000); // Refresh every 2 seconds
-    return () => clearInterval(interval);
+    load();
+    const interval = setInterval(load, 2000);
+    return () => { active = false; clearInterval(interval); };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <h2 className="text-xl font-semibold text-textPrimary mb-4">
-          Protocol Traffic Analysis
-        </h2>
-        <div className="animate-pulse">
-          <div className="h-4 bg-textSecondary/20 rounded w-1/2"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <h2 className="text-xl font-semibold text-textPrimary mb-4">
-          Protocol Traffic Analysis
-        </h2>
-        <div className="p-4 bg-statusError/10 border border-statusError rounded">
-          <p className="text-statusError">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If no packet data available yet
-  if (!stats || !stats.overall || (stats.overall.total_packets === 0 && stats.overall.total_bytes === 0)) {
-    return (
-      <div className="p-6">
-        <h2 className="text-xl font-semibold text-textPrimary mb-4">
-          Protocol Traffic Analysis
-        </h2>
-        <div className="p-6 bg-accentPrimary/10 border border-accentPrimary rounded text-center">
-          <p className="text-textSecondary">
-            No packet data available yet. Start packet capture and generate network traffic.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const rows = useMemo(() => Object.entries(stats?.protocols || {}).map(([name, value]) => ({
+    name: name.toUpperCase(),
+    packets: Number(value.packet_count) || 0,
+    bytes: Number(value.byte_count) || 0,
+    packetShare: Number(value.packet_percentage) || 0,
+    byteShare: Number(value.byte_percentage) || 0,
+  })).filter((item) => item.packets || item.bytes).sort((a, b) => b.packets - a.packets), [stats]);
 
   const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    if (!bytes) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / (1024 ** index)).toFixed(index ? 1 : 0)} ${units[index]}`;
   };
 
-  return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold text-textPrimary mb-4">
-        Protocol Traffic Analysis
-      </h2>
+  if (loading) return <div className="chart-state">Loading protocol distribution…</div>;
+  if (error) return <div className="chart-state chart-error">{error}</div>;
+  if (!rows.length) return <div className="chart-state">No packet data yet. Generate traffic while capture is active.</div>;
 
-      {/* Protocol Summary */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-textPrimary mb-4">
-          Protocol Summary
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-bgCard rounded-lg shadow-md p-4">
-            <p className="text-sm font-medium text-textSecondary">Total Packets</p>
-            <p className="text-2xl font-bold text-textPrimary">
-              {((stats?.overall ?? {}).total_packets ?? 0).toLocaleString()}
-            </p>
-          </div>
-          <div className="bg-bgCard rounded-lg shadow-md p-4">
-            <p className="text-sm font-medium text-textSecondary">Total Bytes</p>
-            <p className="text-2xl font-bold text-textPrimary">
-              {formatBytes(((stats?.overall ?? {}).total_bytes ?? 0))}
-            </p>
-          </div>
-          <div className="bg-bgCard rounded-lg shadow-md p-4">
-            <p className="text-sm font-medium text-textSecondary">Packets/sec</p>
-            <p className="text-2xl font-bold text-textPrimary">
-              {Math.round(((stats?.overall ?? {}).packets_per_second ?? 0))}
-            </p>
-          </div>
-          <div className="bg-bgCard rounded-lg shadow-md p-4">
-            <p className="text-sm font-medium text-textSecondary">Avg Packet Size</p>
-            <p className="text-2xl font-bold text-textPrimary">
-              {Math.round(((stats?.overall ?? {}).average_packet_size ?? 0))} B
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Protocol Distribution */}
-      <div className="">
-        <h3 className="text-lg font-semibold text-textPrimary mb-4">
-          Protocol Distribution
-        </h3>
-        <div className="space-y-4">
-          {Object.entries(stats.protocols ?? {}).map(([name, protocol]) => (
-            <div key={name} className="bg-bgCard rounded-lg shadow-md p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-textPrimary">{name}</h4>
-                <span className="px-2 py-1 bg-textSecondary/20 text-xs rounded">
-                  {((protocol?.packet_percentage) ?? 0).toFixed(1)}% packets
-                </span>
-              </div>
-
-              {/* Packet Percentage Bar */}
-              <div className="mb-2">
-                <div className="flex justify-between text-xs text-textSecondary mb-1">
-                  <span>Packet Percentage</span>
-                  <span>{((protocol?.packet_percentage) ?? 0).toFixed(1)}%</span>
-                </div>
-                <div className="w-full bg-textSecondary/20 rounded-full h-2.5">
-                  <div
-                    className="bg-accentPrimary h-2.5 rounded-full"
-                    style={{ width: `${((protocol?.packet_percentage) ?? 0)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Byte Percentage Bar */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs text-textSecondary mb-1">
-                  <span>Byte Percentage</span>
-                  <span>{((protocol?.byte_percentage) ?? 0).toFixed(1)}%</span>
-                </div>
-                <div className="w-full bg-textSecondary/20 rounded-full h-2.5">
-                  <div
-                    className="bg-statusSuccess h-2.5 rounded-full"
-                    style={{ width: `${((protocol?.byte_percentage) ?? 0)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Details */}
-              <div className="mt-2 text-sm text-textSecondary space-y-1">
-                <div>
-                  <span className="font-medium">Packets:</span> {((protocol?.packet_count) ?? 0).toLocaleString()}
-                </div>
-                <div>
-                  <span className="font-medium">Bytes:</span> {formatBytes(protocol.byte_count ?? 0)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+  const overall = stats?.overall || {};
+  return <div className="analytics-chart-panel">
+    <div className="chart-summary-strip">
+      <div><span>TOTAL PACKETS</span><b>{(overall.total_packets || 0).toLocaleString()}</b></div>
+      <div><span>CAPTURED DATA</span><b>{formatBytes(overall.total_bytes || 0)}</b></div>
+      <div><span>PACKETS / SEC</span><b>{Number(overall.packets_per_second || 0).toFixed(1)}</b></div>
+      <div><span>AVG. PACKET</span><b>{Math.round(overall.average_packet_size || 0)} B</b></div>
     </div>
-  );
+    <div className="chart-title-row"><div><h3>Protocol share</h3><p>Packet share and byte share, ranked by packet volume</p></div><span className="chart-unit-chip">SHARE (%)</span></div>
+    <div className="plot-axis-caption"><span>Y · Protocol</span><span>X · Share of packets or bytes (%)</span></div>
+    <div className="bar-chart-wrap" style={{ height: Math.max(245, rows.length * 54) }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={rows} layout="vertical" margin={{ top: 6, right: 24, bottom: 4, left: 0 }} barCategoryGap="24%">
+          <CartesianGrid horizontal={false} stroke="var(--chart-grid)" />
+          <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" width={70} tick={{ fill: 'var(--chart-text)', fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
+          <Tooltip formatter={(value, name, context) => [`${Number(value).toFixed(1)}% · ${name === 'Packets' ? context.payload.packets.toLocaleString() + ' packets' : formatBytes(context.payload.bytes)}`, name]} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
+          <Legend />
+          <Bar dataKey="packetShare" name="Packets" fill="#38c3cd" radius={[0, 5, 5, 0]} maxBarSize={14} />
+          <Bar dataKey="byteShare" name="Bytes" fill="#8877e8" radius={[0, 5, 5, 0]} maxBarSize={14} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+    <div className="protocol-detail-grid">{rows.map((item) => <div className="protocol-detail" key={item.name}><b>{item.name}</b><span>{item.packets.toLocaleString()} packets · {formatBytes(item.bytes)}</span></div>)}</div>
+  </div>;
 };
 
 export default ProtocolAnalysis;
+
+
