@@ -2,7 +2,7 @@ import psutil
 import time
 import threading
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 from collections import defaultdict
 
@@ -82,7 +82,7 @@ class BandwidthMonitor:
                     # Set initial stats to zero
                     self.current_stats[interface_name] = {
                         'interface': interface_name,
-                        'timestamp': datetime.fromtimestamp(current_time).isoformat(),
+                        'timestamp': datetime.fromtimestamp(current_time, timezone.utc).isoformat(),
                         'download_bps': 0.0,
                         'upload_bps': 0.0,
                         'download_mbps': 0.0,
@@ -120,7 +120,7 @@ class BandwidthMonitor:
                 # Update current stats
                 self.current_stats[interface_name] = {
                     'interface': interface_name,
-                    'timestamp': datetime.fromtimestamp(current_time).isoformat(),
+                    'timestamp': datetime.fromtimestamp(current_time, timezone.utc).isoformat(),
                     'download_bps': max(0, download_bps),  # Ensure non-negative
                     'upload_bps': max(0, upload_bps),
                     'download_mbps': max(0, download_mbps),

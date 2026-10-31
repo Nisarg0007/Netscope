@@ -19,9 +19,12 @@ class NetworkHistory(Base):
     arp_packets = Column(Integer, default=0)
 
     def to_dict(self):
+        timestamp = self.timestamp
+        if timestamp:
+            timestamp = timestamp.replace(tzinfo=timezone.utc) if timestamp.tzinfo is None else timestamp.astimezone(timezone.utc)
         return {
             "id": self.id,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "timestamp": timestamp.isoformat().replace("+00:00", "Z") if timestamp else None,
             "interface": self.interface,
             "download_rate": self.download_rate,
             "upload_rate": self.upload_rate,

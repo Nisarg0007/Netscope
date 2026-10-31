@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchStats } from '../services/apiService';
 import { wsService } from '../services/wsService';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { formatIstDateTime, formatIstTime, parseUtcTimestamp } from '../utils/timeZone';
 
 const BandwidthDisplay = ({ selectedInterface, captureActive }) => {
   const [stats, setStats] = useState({
@@ -41,7 +42,7 @@ const BandwidthDisplay = ({ selectedInterface, captureActive }) => {
         if (previous[previous.length - 1]?.sampleId === sampleId) return previous;
         return [...previous, {
           sampleId,
-          timeMs: new Date(data.timestamp).getTime(),
+          timeMs: parseUtcTimestamp(data.timestamp).getTime(),
           download: (Number(data.download_mbps) || 0) * 8,
           upload: (Number(data.upload_mbps) || 0) * 8,
         }].slice(-30);
@@ -148,9 +149,9 @@ const BandwidthDisplay = ({ selectedInterface, captureActive }) => {
           <div className="plot-axis-caption"><span>Y · Throughput (Mbps)</span><span>X · Sample time</span></div><ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>
               <defs><linearGradient id="liveDownloadFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38c3cd" stopOpacity={0.36} /><stop offset="95%" stopColor="#38c3cd" stopOpacity={0.015} /></linearGradient><linearGradient id="liveUploadFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8877e8" stopOpacity={0.28} /><stop offset="95%" stopColor="#8877e8" stopOpacity={0.015} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
-              <XAxis dataKey="timeMs" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={(value) => new Date(value).toLocaleTimeString([], { minute: '2-digit', second: '2-digit' })} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
+              <XAxis dataKey="timeMs" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={(value) => formatIstTime(value, { minute: '2-digit', second: '2-digit' })} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={24} />
               <YAxis unit=" Mbps" tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
-              <Tooltip labelFormatter={(value) => new Date(value).toLocaleString()} formatter={(value, name) => [`${Number(value).toFixed(3)} Mbps`, name === 'download' ? 'Download' : 'Upload']} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
+              <Tooltip labelFormatter={(value) => formatIstDateTime(value)} formatter={(value, name) => [`${Number(value).toFixed(3)} Mbps`, name === 'download' ? 'Download' : 'Upload']} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
               <Legend verticalAlign="top" height={36} />
               <Area type="monotone" dataKey="download" name="Download" stroke="#38c3cd" strokeWidth={2.5} fill="url(#liveDownloadFill)" dot={false} activeDot={{ r: 4 }} />
               <Area type="monotone" dataKey="upload" name="Upload" stroke="#8877e8" strokeWidth={2.5} fill="url(#liveUploadFill)" dot={false} activeDot={{ r: 4 }} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getHistory, clearHistory } from '../services/apiService';
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { formatIstDateTime, formatIstTime, parseUtcTimestamp } from '../utils/timeZone';
 
 const RANGE_MS = { '1h': 60 * 60 * 1000, '6h': 6 * 60 * 60 * 1000, '24h': 24 * 60 * 60 * 1000, '7d': 7 * 24 * 60 * 60 * 1000 };
 
@@ -29,10 +30,10 @@ const HistoricalTraffic = () => {
 
   const formatTimestamp = (isoString) => {
     if (!isoString) return '';
-    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return formatIstTime(isoString, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
-  const formatAxisTime = (value) => new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const formatAxisTime = (value) => formatIstTime(value, { hour: 'numeric', minute: '2-digit' });
   const formatPacketTick = (value) => {
     const count = Number(value) || 0;
     if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
@@ -56,11 +57,11 @@ const HistoricalTraffic = () => {
     return () => { active = false; clearInterval(interval); };
   }, [limit, range]);
 
-  const sortedSnapshots = useMemo(() => [...snapshots].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)), [snapshots]);
+  const sortedSnapshots = useMemo(() => [...snapshots].sort((a, b) => parseUtcTimestamp(a.timestamp) - parseUtcTimestamp(b.timestamp)), [snapshots]);
   const latest = sortedSnapshots[sortedSnapshots.length - 1];
   const chartData = useMemo(() => sortedSnapshots.map((row) => ({
     ...row,
-    timeMs: new Date(row.timestamp).getTime(),
+    timeMs: parseUtcTimestamp(row.timestamp).getTime(),
     download_mbps: (Number(row.download_rate) || 0) * 8 / 1e6,
     upload_mbps: (Number(row.upload_rate) || 0) * 8 / 1e6,
   })), [sortedSnapshots]);
@@ -85,7 +86,7 @@ const HistoricalTraffic = () => {
       <div><span>SNAPSHOTS</span><b>{snapshots.length.toLocaleString()}</b></div>
       <div><span>LATEST DOWNLOAD</span><b>{latest ? formatBandwidth(latest.download_rate) : '—'}</b></div>
       <div><span>LATEST UPLOAD</span><b>{latest ? formatBandwidth(latest.upload_rate) : '—'}</b></div>
-      <div><span>LAST SAMPLE</span><b>{latest ? new Date(latest.timestamp).toLocaleString() : '—'}</b></div>
+      <div><span>LAST SAMPLE</span><b>{latest ? formatIstDateTime(latest.timestamp) : '—'}</b></div>
     </div>
     {!chartData.length ? <div className="chart-state">No samples in this time range. Choose a wider range or continue capturing traffic.</div> : <>
       <div className="history-chart-card">
@@ -95,7 +96,7 @@ const HistoricalTraffic = () => {
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 5" vertical={false} />
           <XAxis dataKey="timeMs" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={formatTimestamp} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={30} />
           <YAxis unit=" Mbps" domain={[0, 'auto']} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={75} />
-          <Tooltip labelFormatter={(value) => new Date(value).toLocaleString()} formatter={(value, name) => [`${Number(value).toFixed(3)} Mbps`, name === 'download_mbps' ? 'Download' : 'Upload']} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
+          <Tooltip labelFormatter={(value) => formatIstDateTime(value)} formatter={(value, name) => [`${Number(value).toFixed(3)} Mbps`, name === 'download_mbps' ? 'Download' : 'Upload']} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
           <Legend />
           <Area type="monotone" dataKey="download_mbps" name="Download" stroke="#38c3cd" strokeWidth={2.5} fill="url(#historyDownloadFill)" dot={false} activeDot={{ r: 4 }} />
           <Area type="monotone" dataKey="upload_mbps" name="Upload" stroke="#8877e8" strokeWidth={2.5} fill="url(#historyUploadFill)" dot={false} activeDot={{ r: 4 }} />
@@ -107,7 +108,7 @@ const HistoricalTraffic = () => {
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 5" vertical={false} />
           <XAxis dataKey="timeMs" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={formatAxisTime} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickCount={5} interval="preserveStartEnd" minTickGap={72} height={30} />
           <YAxis allowDecimals={false} tickFormatter={formatPacketTick} tick={{ fill: 'var(--chart-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={54} />
-          <Tooltip labelFormatter={(value) => new Date(value).toLocaleString()} formatter={(value, name) => [Number(value).toLocaleString(), name]} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
+          <Tooltip labelFormatter={(value) => formatIstDateTime(value)} formatter={(value, name) => [Number(value).toLocaleString(), name]} contentStyle={{ background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)' }} />
           <Legend content={() => <div className="tidy-chart-legend">{[{ name: 'Total', color: '#8877e8' }, { name: 'TCP', color: '#f1a34a' }, { name: 'UDP', color: '#e56ba5' }, { name: 'ICMP', color: '#39bd8a' }, { name: 'ARP', color: '#38c3cd' }].map((item) => <span key={item.name}><i style={{ backgroundColor: item.color }} />{item.name}</span>)}</div>} />
           <Line type="monotone" dataKey="total_packets" name="Total" stroke="#8877e8" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
           <Line type="monotone" dataKey="tcp_packets" name="TCP" stroke="#f1a34a" strokeWidth={2} dot={false} activeDot={{ r: 3 }} />
